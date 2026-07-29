@@ -189,6 +189,28 @@ curl -s -X POST http://localhost:8080/api/v1/unknown
 # {"error":"route not found"}
 ```
 
+## OpenAPI / Swagger documentation
+
+The full API contract is documented as an OpenAPI 3.0.3 spec at [`backend/docs/openapi.yaml`](backend/docs/openapi.yaml). It covers all four endpoints, the shared request/response/error schemas, and examples for every success and error case (including division by zero).
+
+To view it as interactive Swagger-style documentation, either:
+
+- **Paste/upload it into the [Swagger Editor](https://editor.swagger.io/)** (no install required), or
+- **Generate a static HTML preview with Redocly** (no project dependency added — run via `npx`), from the repo root:
+
+  ```bash
+  npx @redocly/cli build-docs backend/docs/openapi.yaml -o backend/docs/openapi.html
+  open backend/docs/openapi.html
+  ```
+
+  (`open` is macOS-specific; on Linux use `xdg-open`, on Windows use `start`.) This generates a self-contained HTML page and is not committed to the repo — regenerate it whenever `openapi.yaml` changes.
+
+To lint/validate the spec itself:
+
+```bash
+npx @redocly/cli lint backend/docs/openapi.yaml
+```
+
 ## Backend design decisions
 
 - **Standard library only.** `net/http` for the server and routing, `encoding/json` for (de)serialization, `testing` + `net/http/httptest` for tests. No web framework, database, or external dependency — appropriate for the scope of this assignment.
@@ -198,4 +220,5 @@ curl -s -X POST http://localhost:8080/api/v1/unknown
 - **Layering.** `cmd/api` only starts the server; `internal/router` only registers routes; `internal/controller` handles HTTP concerns (method/JSON validation, calling the use case, shaping the response) and stays thin; `internal/usecase` holds pure arithmetic logic with no `net/http` dependency and one file per operation, independently unit-tested; `internal/dto` holds the request/response/error structs. `internal/domain` is left intentionally minimal — there's no shared domain concept beyond what `dto` and `usecase` already express at this scope.
 - **Uniform use-case signature.** All four use cases share `func(first, second float64) (float64, error)`, even though only `Divide` can actually fail. This lets the controller dispatch all four operations through one shared handler function instead of duplicating the request-handling flow four times.
 - **Status codes.** `200` on success; `400` for all input/validation errors including division by zero; `405` for an unsupported method on a known route; `404` for an unknown route.
-- **Not implemented (by design, out of scope for this task):** Swagger/OpenAPI, Docker, a database, authentication, and optional operations (exponentiation, square root, percentage). The architecture (one file per use case, thin controllers) is structured so those operations could be added later without restructuring existing code.
+- **Not implemented (by design, out of scope for this task):** Docker, a database, authentication, and optional operations (exponentiation, square root, percentage). The architecture (one file per use case, thin controllers) is structured so those operations could be added later without restructuring existing code.
+- **OpenAPI documentation.** The spec in `backend/docs/openapi.yaml` documents the existing API exactly as implemented — it does not change any route, status code, or JSON field. Reusable `CalculatorRequest`/`CalculatorResponse`/`ErrorResponse` schemas and named examples (via `components/examples`) are shared across all four operations to avoid repeating the same content four times.

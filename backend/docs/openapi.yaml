@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: Calculator API
+  description: >
+    REST API exposing basic arithmetic operations (addition, subtraction,
+    multiplication, division). Each operation has its own endpoint; the
+    operation to perform is determined solely by the request path, not by
+    any field in the request body.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+    description: Local development server (default port, override with PORT env var)
+
+tags:
+  - name: Calculator
+    description: Arithmetic operations
+
+paths:
+  /api/v1/calculator/addition:
+    post:
+      tags: [Calculator]
+      summary: Add two numbers
+      operationId: addition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculatorRequest"
+            examples:
+              addition:
+                $ref: "#/components/examples/AdditionRequest"
+      responses:
+        "200":
+          description: Successful calculation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculatorResponse"
+              examples:
+                additionResult:
+                  $ref: "#/components/examples/AdditionResult"
+        "400":
+          description: The request body is invalid or an operand is missing/invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRequestBody:
+                  $ref: "#/components/examples/InvalidRequestBody"
+                missingFirstOperand:
+                  $ref: "#/components/examples/MissingFirstOperand"
+                missingSecondOperand:
+                  $ref: "#/components/examples/MissingSecondOperand"
+                invalidOperandValue:
+                  $ref: "#/components/examples/InvalidOperandValue"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+
+  /api/v1/calculator/subtraction:
+    post:
+      tags: [Calculator]
+      summary: Subtract the second number from the first
+      operationId: subtraction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculatorRequest"
+            examples:
+              subtraction:
+                $ref: "#/components/examples/SubtractionRequest"
+      responses:
+        "200":
+          description: Successful calculation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculatorResponse"
+              examples:
+                subtractionResult:
+                  $ref: "#/components/examples/SubtractionResult"
+        "400":
+          description: The request body is invalid or an operand is missing/invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRequestBody:
+                  $ref: "#/components/examples/InvalidRequestBody"
+                missingFirstOperand:
+                  $ref: "#/components/examples/MissingFirstOperand"
+                missingSecondOperand:
+                  $ref: "#/components/examples/MissingSecondOperand"
+                invalidOperandValue:
+                  $ref: "#/components/examples/InvalidOperandValue"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+
+  /api/v1/calculator/multiplication:
+    post:
+      tags: [Calculator]
+      summary: Multiply two numbers
+      operationId: multiplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculatorRequest"
+            examples:
+              multiplication:
+                $ref: "#/components/examples/MultiplicationRequest"
+      responses:
+        "200":
+          description: Successful calculation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculatorResponse"
+              examples:
+                multiplicationResult:
+                  $ref: "#/components/examples/MultiplicationResult"
+        "400":
+          description: The request body is invalid or an operand is missing/invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRequestBody:
+                  $ref: "#/components/examples/InvalidRequestBody"
+                missingFirstOperand:
+                  $ref: "#/components/examples/MissingFirstOperand"
+                missingSecondOperand:
+                  $ref: "#/components/examples/MissingSecondOperand"
+                invalidOperandValue:
+                  $ref: "#/components/examples/InvalidOperandValue"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+
+  /api/v1/calculator/division:
+    post:
+      tags: [Calculator]
+      summary: Divide the first number by the second
+      operationId: division
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculatorRequest"
+            examples:
+              division:
+                $ref: "#/components/examples/DivisionRequest"
+      responses:
+        "200":
+          description: Successful calculation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculatorResponse"
+              examples:
+                divisionResult:
+                  $ref: "#/components/examples/DivisionResult"
+        "400":
+          description: >
+            The request body is invalid, an operand is missing/invalid, or
+            the second operand is zero
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidRequestBody:
+                  $ref: "#/components/examples/InvalidRequestBody"
+                missingFirstOperand:
+                  $ref: "#/components/examples/MissingFirstOperand"
+                missingSecondOperand:
+                  $ref: "#/components/examples/MissingSecondOperand"
+                invalidOperandValue:
+                  $ref: "#/components/examples/InvalidOperandValue"
+                divisionByZero:
+                  $ref: "#/components/examples/DivisionByZero"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+
+components:
+  schemas:
+    CalculatorRequest:
+      type: object
+      description: >
+        Request body accepted by all calculator endpoints. Both operands
+        are required; zero is a valid operand value.
+      required:
+        - firstOperand
+        - secondOperand
+      properties:
+        firstOperand:
+          type: number
+          format: double
+          example: 10
+        secondOperand:
+          type: number
+          format: double
+          example: 5
+
+    CalculatorResponse:
+      type: object
+      description: Response body returned on a successful calculation.
+      required:
+        - result
+      properties:
+        result:
+          type: number
+          format: double
+          example: 15
+
+    ErrorResponse:
+      type: object
+      description: Response body returned for any error condition.
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: invalid request body
+
+  responses:
+    MethodNotAllowed:
+      description: The request method is not POST
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            methodNotAllowed:
+              $ref: "#/components/examples/MethodNotAllowed"
+
+  examples:
+    AdditionRequest:
+      summary: Add 10 and 5
+      value: { firstOperand: 10, secondOperand: 5 }
+    AdditionResult:
+      summary: Result of 10 + 5
+      value: { result: 15 }
+    SubtractionRequest:
+      summary: Subtract 5 from 10
+      value: { firstOperand: 10, secondOperand: 5 }
+    SubtractionResult:
+      summary: Result of 10 - 5
+      value: { result: 5 }
+    MultiplicationRequest:
+      summary: Multiply 10 by 5
+      value: { firstOperand: 10, secondOperand: 5 }
+    MultiplicationResult:
+      summary: Result of 10 * 5
+      value: { result: 50 }
+    DivisionRequest:
+      summary: Divide 10 by 5
+      value: { firstOperand: 10, secondOperand: 5 }
+    DivisionResult:
+      summary: Result of 10 / 5
+      value: { result: 2 }
+    InvalidRequestBody:
+      summary: Malformed JSON body
+      value: { error: "invalid request body" }
+    MissingFirstOperand:
+      summary: firstOperand omitted from the request body
+      value: { error: "firstOperand is required" }
+    MissingSecondOperand:
+      summary: secondOperand omitted from the request body
+      value: { error: "secondOperand is required" }
+    InvalidOperandValue:
+      summary: An operand is present but not a valid number
+      value: { error: "invalid operand value" }
+    DivisionByZero:
+      summary: secondOperand is zero on the division endpoint
+      value: { error: "division by zero is not allowed" }
+    MethodNotAllowed:
+      summary: A method other than POST was used
+      value: { error: "method not allowed" }
