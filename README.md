@@ -243,8 +243,7 @@ npx @redocly/cli lint backend/docs/openapi.yaml
   `internal/controller` handles HTTP concerns (method/JSON validation, calling the use case, shaping
   the response) and stays thin; `internal/usecase` holds pure arithmetic logic with no `net/http`
   dependency and one file per operation, independently unit-tested; `internal/dto` holds the
-  request/response/error structs. `internal/domain` is left intentionally minimal — there's no
-  shared domain concept beyond what `dto` and `usecase` already express at this scope.
+  request/response/error structs.
 - **Uniform use-case signature.** All four use cases share
   `func(first, second float64) (float64, error)`, even though only `Divide` can actually fail. This
   lets the controller dispatch all four operations through one shared handler function instead of
