@@ -97,7 +97,7 @@ export function CalculatorForm({
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='rounded-md bg-gray-50 px-4 py-3 text-right'>
+      <div className='rounded-md bg-gray-200 px-4 py-3 text-right'>
         <Text as='p' aria-label='Expression' className='h-5 text-sm text-gray-500 font-bold'>
           {expression || NBSP}
         </Text>
