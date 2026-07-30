@@ -18,28 +18,22 @@ var (
 
 type operation func(first, second float64) (float64, error)
 
-// AdditionHandler handles POST /api/v1/calculator/addition.
 func AdditionHandler(w http.ResponseWriter, r *http.Request) {
 	handleCalculation(w, r, usecase.Add)
 }
 
-// SubtractionHandler handles POST /api/v1/calculator/subtraction.
 func SubtractionHandler(w http.ResponseWriter, r *http.Request) {
 	handleCalculation(w, r, usecase.Subtract)
 }
 
-// MultiplicationHandler handles POST /api/v1/calculator/multiplication.
 func MultiplicationHandler(w http.ResponseWriter, r *http.Request) {
 	handleCalculation(w, r, usecase.Multiply)
 }
 
-// DivisionHandler handles POST /api/v1/calculator/division.
 func DivisionHandler(w http.ResponseWriter, r *http.Request) {
 	handleCalculation(w, r, usecase.Divide)
 }
 
-// NotFoundHandler is the catch-all handler for any path that does not
-// match a registered calculator route. Registered by internal/router.
 func NotFoundHandler(w http.ResponseWriter, _ *http.Request) {
 	writeError(w, http.StatusNotFound, "route not found")
 }
