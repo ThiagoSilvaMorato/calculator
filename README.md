@@ -176,6 +176,15 @@ curl -s -X POST http://localhost:8080/api/v1/calculator/division \
 # {"error":"division by zero is not allowed"}
 ```
 
+**Result overflow (not a finite number)**
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/calculator/addition \
+  -d '{"firstOperand":1e308,"secondOperand":1e308}'
+# 400 Bad Request
+# {"error":"result is not a finite number"}
+```
+
 **Unsupported HTTP method**
 
 ```bash
@@ -267,6 +276,13 @@ npx @redocly/cli lint backend/docs/openapi.yaml
   `Access-Control-Allow-Origin` is set to `*` — there's no authentication or cookies in play, so a
   wildcard carries no real security downside for this assignment. It doesn't change any route,
   status code, or JSON contract for real requests.
+- **Non-finite results are rejected, not silently returned broken.** Go's `encoding/json` cannot
+  marshal `+Inf`/`-Inf`/`NaN` — it errors instead. An operand pair large enough to overflow
+  `float64` (e.g. two `1e308` values added together) would otherwise reach the response-writing
+  step, already commit a `200` status, and then fail to write any body at all, since the encode
+  error was discarded. The controller now checks the use case's result with
+  `math.IsInf`/`math.IsNaN` before writing a response and returns
+  `400 {"error":"result is not a finite number"}` instead.
 
 ## Frontend
 
@@ -316,6 +332,17 @@ npm run build     # runs `tsc` then `vite build`
 npm run preview   # serve the production build locally
 ```
 
+### Using the calculator
+
+The UI is a real keypad calculator, not a text-input form: digit/operator/`AC`/`←`/`.`/`=` buttons
+on screen, plus full physical-keyboard support (`0`–`9`, `+ - * /`, `.`, `Enter`/`=`, `Backspace`,
+`Escape` for `AC`), with a brief visual "pressed" flash on the matching button for keyboard input so
+both input methods feel the same. Numbers are formatted with US thousands/decimal separators as you
+type (e.g. `1,234.5`). Operations chain left-to-right — pressing another operator after both
+operands are entered evaluates the pending one against the backend immediately (e.g. `10 + 15 -`
+computes `10 + 15` right away, so `=` only needs to do the final step) — and every calculation is
+performed by the backend; the frontend never does its own arithmetic.
+
 ### How the frontend talks to the backend
 
 `src/services/calculatorApi.ts` is the only module that calls the backend — it maps each of the four
@@ -330,21 +357,26 @@ requests succeed.
 ## Frontend design decisions
 
 - **No state-management or HTTP library.** Native `fetch` (in `services/calculatorApi.ts`) and
-  React's built-in `useState` (in `pages/Calculator/hooks/useCalculator.ts`) are sufficient for a
-  single-page form with one piece of shared state — Redux/Zustand/Axios/React Hook Form would be
-  unjustified complexity here.
-- **Page owns state, form is presentational.** `Calculator.tsx` calls `useCalculator()` and passes
-  the result straight to `CalculatorForm` as props. `CalculatorForm` never calls the API or touches
-  validation itself — it only renders what it's given and calls the callbacks it's given. This keeps
-  `CalculatorForm` testable with plain mock props (no network mocking) and `useCalculator` testable
-  in isolation with the API module mocked.
+  React's built-in `useState`/`useRef` (in `pages/Calculator/hooks/useCalculator.ts`) are sufficient
+  for a single-page app with one piece of shared state — Redux/Zustand/Axios would be unjustified
+  complexity here.
+- **Page owns state, keypad is presentational.** `Calculator.tsx` calls `useCalculator()` and passes
+  the result straight to `CalculatorForm` as props. `CalculatorForm` renders the expression/display
+  panel and the keypad grid and calls the callbacks it's given — it never calls the API or touches
+  number formatting itself. This keeps `CalculatorForm` testable with plain mock props (no network
+  mocking) and `useCalculator` testable in isolation with the API module mocked.
 - **`CalculationOutcome` discriminated union.** `calculatorApi.calculate` returns
   `{ ok: true; result } | { ok: false; error }` instead of throwing, so the hook never needs
   `try/catch` — it just branches on `.ok`.
-- **Client-side validation before any network call.** `utils/validation.ts` distinguishes an empty
-  operand from a non-numeric one (`Number(trimmed)`, not `parseFloat`, so `"12abc"` is correctly
-  rejected while negatives/decimals/`"0"` are accepted) and short-circuits `onSubmit` before calling
-  the backend.
+- **Sequential calculations resolve on the backend, not the frontend.** Pressing an operator while a
+  previous operation and a freshly-typed second operand are both pending calls the backend for that
+  pending operation first (see "Using the calculator" above), then starts the next one with the real
+  returned result — the frontend never adds/subtracts/multiplies/divides on its own.
+- **Local-first constants/models organization.** Constants and TypeScript types live next to the
+  code that owns them: component-specific ones in `components/<Name>/{constants,models}.ts`,
+  Calculator feature-wide ones (operation symbols, keyboard mappings, keypad button ids) in
+  `pages/Calculator/{constants,models}/calculator.ts`. There's no global `src/constants/` or
+  `src/models/` because nothing in this single-feature app is actually shared beyond it.
 - **Tailwind CSS, no CSS Modules/CSS-in-JS.** Utility classes are applied directly in each component
   (no `tailwind.config.js`/`postcss.config.js` needed — Tailwind v4's Vite plugin handles content
   detection and the default theme is used as-is). A grey palette (Tailwind's built-in `gray` scale)

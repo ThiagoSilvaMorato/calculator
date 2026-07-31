@@ -7,6 +7,12 @@ vi.mock('../../../services/calculatorApi');
 
 const calculateMock = vi.mocked(calculatorApi.calculate);
 
+function pressKey(key: string) {
+  act(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, cancelable: true }));
+  });
+}
+
 describe('useCalculator', () => {
   afterEach(() => {
     calculateMock.mockReset();
@@ -564,22 +570,15 @@ describe('useCalculator', () => {
   });
 
   describe('keyboard interactions', () => {
-    function pressKey(key: string) {
-      act(() => {
-        window.dispatchEvent(new KeyboardEvent('keydown', { key, cancelable: true }));
-      });
-    }
-
     it('types digits and a decimal point from the keyboard', async () => {
-      renderHook(() => useCalculator());
+      const { result } = renderHook(() => useCalculator());
 
       pressKey('1');
       pressKey('2');
       pressKey('.');
       pressKey('5');
 
-      const { result } = renderHook(() => useCalculator());
-      expect(result.current).toBeDefined();
+      expect(result.current.display).toBe('12.5');
     });
 
     it('supports the full keyboard flow end to end', async () => {
@@ -628,12 +627,6 @@ describe('useCalculator', () => {
     afterEach(() => {
       vi.useRealTimers();
     });
-
-    function pressKey(key: string) {
-      act(() => {
-        window.dispatchEvent(new KeyboardEvent('keydown', { key, cancelable: true }));
-      });
-    }
 
     it('highlights the pressed digit button', async () => {
       const { result } = renderHook(() => useCalculator());

@@ -63,6 +63,7 @@ func TestCalculatorHandlers_Errors(t *testing.T) {
 		{"invalid operand type", AdditionHandler, http.MethodPost, `{"firstOperand":"abc","secondOperand":5}`, http.StatusBadRequest, "invalid operand value"},
 		{"division by zero", DivisionHandler, http.MethodPost, `{"firstOperand":10,"secondOperand":0}`, http.StatusBadRequest, "division by zero is not allowed"},
 		{"method not allowed", AdditionHandler, http.MethodGet, ``, http.StatusMethodNotAllowed, "method not allowed"},
+		{"result overflow", AdditionHandler, http.MethodPost, `{"firstOperand":1e308,"secondOperand":1e308}`, http.StatusBadRequest, "result is not a finite number"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -11,3 +11,5 @@
 - Write tests alongside the code they validate.
 - Do not add React Router — the project has only one page.
 - Avoid unnecessary dependencies and abstractions.
+- Use Tailwind CSS utility classes for styling — no CSS Modules, no CSS-in-JS, no `tailwind.config.js`/`postcss.config.js` (Tailwind v4's Vite plugin handles this).
+- Place constants and models/types close to what uses them: component-specific in `components/<Name>/{constants,models}.ts`, Calculator feature-wide in `pages/Calculator/{constants,models}/calculator.ts`. Only create a global `src/constants/` or `src/models/` if something is genuinely shared beyond the Calculator feature — don't create one by default.

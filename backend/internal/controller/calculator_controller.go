@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"net/http"
 
 	"calculator/backend/internal/dto"
@@ -14,6 +15,7 @@ var (
 	errInvalidOperandValue   = errors.New("invalid operand value")
 	errFirstOperandRequired  = errors.New("firstOperand is required")
 	errSecondOperandRequired = errors.New("secondOperand is required")
+	errResultNotFinite       = errors.New("result is not a finite number")
 )
 
 type operation func(first, second float64) (float64, error)
@@ -60,6 +62,11 @@ func handleCalculation(w http.ResponseWriter, r *http.Request, op operation) {
 	result, err := op(first, second)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if math.IsInf(result, 0) || math.IsNaN(result) {
+		writeError(w, http.StatusBadRequest, errResultNotFinite.Error())
 		return
 	}
 
