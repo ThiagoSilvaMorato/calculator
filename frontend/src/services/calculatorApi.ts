@@ -3,7 +3,7 @@ import type {
   CalculatorErrorResponse,
   CalculatorSuccessResponse,
   Operation,
-} from '../types/calculator';
+} from '../pages/Calculator/models/calculator';
 
 const DEFAULT_BASE_URL = 'http://localhost:8080';
 

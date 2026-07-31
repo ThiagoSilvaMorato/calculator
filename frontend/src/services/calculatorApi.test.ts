@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { calculate } from './calculatorApi';
-import type { Operation } from '../types/calculator';
+import type { Operation } from '../pages/Calculator/models/calculator';
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {

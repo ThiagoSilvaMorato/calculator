@@ -8,56 +8,39 @@ import {
   parseCleanNumber,
   removeLastChar,
 } from "../../../utils/validation";
-import type { CalculationOutcome, Operation } from "../../../types/calculator";
-
-export interface UseCalculatorResult {
-  display: string;
-  expression: string;
-  error: string | null;
-  isLoading: boolean;
-  pressedButtonId: string | null;
-  onDigit: (digit: string) => void;
-  onDecimalPoint: () => void;
-  onOperation: (operation: Operation) => Promise<void>;
-  onEquals: () => Promise<void>;
-  onBackspace: () => void;
-  onClear: () => void;
-}
-
-const OPERATION_SYMBOLS: Record<Operation, string> = {
-  addition: "+",
-  subtraction: "-",
-  multiplication: "*",
-  division: "/",
-};
-
-const KEY_TO_OPERATION: Record<string, Operation> = Object.fromEntries(
-  (Object.entries(OPERATION_SYMBOLS) as [Operation, string][]).map(([op, symbol]) => [symbol, op]),
-);
-
-const KEY_PRESS_HIGHLIGHT_MS = 150;
+import {
+  digitButtonId,
+  KEY_PRESS_HIGHLIGHT_MS,
+  KEY_TO_OPERATION,
+  KEYPAD_BUTTON_IDS,
+  OPERATION_SYMBOLS,
+  SECOND_VALUE_REQUIRED_ERROR,
+} from "../constants/calculator";
+import type { CalculationOutcome, Operation } from "../models/calculator";
+import type { UseCalculatorResult } from "./models";
 
 function describeOperand(value: number, operationSymbol: string): string {
   return `${formatResultValue(value)} ${operationSymbol}`;
 }
+
 function keyToButtonId(key: string): string | null {
   if (key >= "0" && key <= "9") {
-    return `digit-${key}`;
+    return digitButtonId(key);
   }
   if (key === ".") {
-    return "decimal";
+    return KEYPAD_BUTTON_IDS.decimal;
   }
   if (key in KEY_TO_OPERATION) {
     return KEY_TO_OPERATION[key];
   }
   if (key === "Enter" || key === "=") {
-    return "equals";
+    return KEYPAD_BUTTON_IDS.equals;
   }
   if (key === "Backspace") {
-    return "backspace";
+    return KEYPAD_BUTTON_IDS.backspace;
   }
   if (key === "Escape") {
-    return "clear";
+    return KEYPAD_BUTTON_IDS.clear;
   }
   return null;
 }
@@ -163,7 +146,7 @@ export function useCalculator(): UseCalculatorResult {
       return;
     }
     if (currentValue === "") {
-      setError("Second value is required");
+      setError(SECOND_VALUE_REQUIRED_ERROR);
       return;
     }
 
@@ -257,7 +240,7 @@ export function useCalculator(): UseCalculatorResult {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  });
 
   return {
     display: formatDisplayValue(currentValue),

@@ -1,32 +1,10 @@
 import { Button } from "../../../../components/Button";
-import type { ButtonVariant } from "../../../../components/Button";
 import { Text } from "../../../../components/Text";
-import type { Operation } from "../../../../types/calculator";
+import { digitButtonId, KEYPAD_BUTTON_IDS, OPERATION_SYMBOLS } from "../../constants/calculator";
+import type { Operation } from "../../models/calculator";
+import type { CalculatorFormProps, KeypadKey } from "./models";
 
-export interface CalculatorFormProps {
-  display: string;
-  expression: string;
-  error: string | null;
-  isLoading: boolean;
-  pressedButtonId: string | null;
-  onDigit: (digit: string) => void;
-  onDecimalPoint: () => void;
-  onOperation: (operation: Operation) => void;
-  onEquals: () => void;
-  onBackspace: () => void;
-  onClear: () => void;
-}
-
-interface KeypadKey {
-  id: string;
-  label: string;
-  ariaLabel: string;
-  variant: ButtonVariant;
-  span2?: boolean;
-  onClick: () => void;
-}
-
-const NBSP = " ";
+const NBSP = " ";
 
 export function CalculatorForm({
   display,
@@ -42,62 +20,74 @@ export function CalculatorForm({
   onClear,
 }: CalculatorFormProps) {
   const digitKey = (digit: string): KeypadKey => ({
-    id: `digit-${digit}`,
+    id: digitButtonId(digit),
     label: digit,
     ariaLabel: digit,
     variant: "secondary",
     onClick: () => onDigit(digit),
   });
 
-  const operatorKey = (operation: Operation, label: string, ariaLabel: string): KeypadKey => ({
+  const operatorKey = (operation: Operation, ariaLabel: string): KeypadKey => ({
     id: operation,
-    label,
+    label: OPERATION_SYMBOLS[operation],
     ariaLabel,
     variant: "primary",
     onClick: () => onOperation(operation),
   });
 
   const keys: KeypadKey[] = [
-    { id: "backspace", label: "←", ariaLabel: "Backspace", variant: "muted", onClick: onBackspace },
     {
-      id: "clear",
+      id: KEYPAD_BUTTON_IDS.backspace,
+      label: "←",
+      ariaLabel: "Backspace",
+      variant: "muted",
+      onClick: onBackspace,
+    },
+    {
+      id: KEYPAD_BUTTON_IDS.clear,
       label: "AC",
       ariaLabel: "All clear",
       variant: "muted",
       span2: true,
       onClick: onClear,
     },
-    operatorKey("division", "/", "Divide"),
+    operatorKey("division", "Divide"),
 
     digitKey("7"),
     digitKey("8"),
     digitKey("9"),
-    operatorKey("multiplication", "*", "Multiply"),
+    operatorKey("multiplication", "Multiply"),
 
     digitKey("4"),
     digitKey("5"),
     digitKey("6"),
-    operatorKey("subtraction", "-", "Subtract"),
+    operatorKey("subtraction", "Subtract"),
 
     digitKey("1"),
     digitKey("2"),
     digitKey("3"),
-    operatorKey("addition", "+", "Add"),
+    operatorKey("addition", "Add"),
 
     { ...digitKey("0"), span2: true },
     {
-      id: "decimal",
+      id: KEYPAD_BUTTON_IDS.decimal,
       label: ".",
       ariaLabel: "Decimal point",
       variant: "secondary",
       onClick: onDecimalPoint,
     },
-    { id: "equals", label: "=", ariaLabel: "Calculate", variant: "primary", onClick: onEquals },
+    {
+      id: KEYPAD_BUTTON_IDS.equals,
+      label: "=",
+      ariaLabel: "Calculate",
+      variant: "primary",
+      onClick: onEquals,
+    },
   ];
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='rounded-md bg-gray-200 px-4 py-3 text-right'>
+      <div className='rounded-md bg-gray-200 px-4 py-3 text-right h-20'>
         <Text as='p' aria-label='Expression' className='h-5 text-sm text-gray-500 font-bold'>
           {expression || NBSP}
         </Text>

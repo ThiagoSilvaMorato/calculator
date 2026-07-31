@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { fireEvent } from '@testing-library/react';
 import { CalculatorForm } from './CalculatorForm';
-import type { CalculatorFormProps } from './CalculatorForm';
+import type { CalculatorFormProps } from './models';
 
 function renderForm(overrides: Partial<CalculatorFormProps> = {}) {
   const props: CalculatorFormProps = {
